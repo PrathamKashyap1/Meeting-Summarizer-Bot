@@ -12,6 +12,7 @@ def main():
         args=  []
         args.append("--disable-blink-features=AutomationControlled")
         args.append("--use-fake-ui-for-media-stream")
+        args.append("--mute-audio")
 
         browser = p.chromium.launch(headless=False,slow_mo=60,args=args)
         context = browser.new_context(no_viewport=True)
@@ -21,41 +22,59 @@ def main():
             page.goto(meeting_link)
             time.sleep(2)
             page.click('button:has-text("Got it")');
-            time.sleep(1);
+            # time.sleep(1);
             page.locator('.qdOxv-fmcmS-wGMbrd').fill("Pr-bot");#Name of the bot attending
 
             mic_class = ".Pr6Uwe"
             cam_class = ".utiQxe"
-            transcript_class = ".VbkSUe"
+            transcript_xpath = '''//*[@id="yDmH0d"]/c-wiz/div/div/div[36]/div[4]/div/div[3]/div/div[2]/div/div'''
+            endcall_xpath='''//*[@id="yDmH0d"]/c-wiz/div/div/div[36]/div[4]/div[8]/div/div/div[2]/div/div[8]'''
+            chat_xpath='''//*[@id="yDmH0d"]/c-wiz/div/div/div[36]/div[4]/div/div[8]/div/div/div[3]/nav/div[3]/div/div/span/button/div'''
             page.locator(cam_class).click();
+            page.locator(mic_class).click();
             time.sleep(2);
             page.locator('.UywwFc-vQzf8d').click(); #clicking the join now button
             page.wait_for_load_state('domcontentloaded')
             page.click('button:has-text("Got it")')
             page.locator('.juFBl').click() #turn on captions button
             page.wait_for_load_state('domcontentloaded')
-            genai.configure(api_key=os.getenv("GOOGLE_APIKEY"))#adding the API key before itself
+            genai.configure(api_key=os.getenv("GOOGLE_APIKEY"))
             with open('prompt.txt','r') as f:
                     prompts = f.read().split('/')#different prompts are stored as list
-            counter=0 #No.of times the users call it(To prevent infinite responses)
+            counter=1 #No.of times the users call it(To prevent infinite responses)
             time.sleep(5)
+            def chatwithuser(text):
+                page.locator(chat_xpath).click()
+                time.sleep(1)
+                page.keyboard.type(text)
+                time.sleep(1)
+                page.keyboard.press('Enter')
+                time.sleep(1)
+                page.locator(chat_xpath).click()
+                time.sleep(1)
+            
+            chatwithuser("Hello. I am your Assistant for this meeting.")
+
             while True:
                 time.sleep(5)
-                l = page.locator(transcript_class).all_text_contents()
+                l = page.locator(transcript_xpath).all_text_contents()
+                if len(l)==0:
+                    continue
                 if "bot" in l[0].lower() and l[0].count("bot")>counter:
                     counter+=1
                     #Making call to llm here
-                    print(l[0].lower())
                     model = genai.GenerativeModel('gemini-2.0-flash')
                     response = model.generate_content(prompts[0]+l[0].lower())
                     output = response.text.replace('*','').replace('#','')
-                    print(output)
+                    chatwithuser(output)
                 elif "end" in l[0].lower() or "bye" in l[0].lower():
                     model = genai.GenerativeModel('gemini-2.0-flash')
                     response = model.generate_content(prompts[1]+l[0].lower())
                     output = response.text.replace('#','').replace('*','')
-                    print(output)
-                    #Plan on how to proceed
+                    chatwithuser(output)
+
+
+                    #Plan on how to proceed(Visualizations plan)
                     response = model.generate_content(prompts[2]+l[0].lower())
                     output = response.text.replace('#','').replace('*','')
                     print(output)
@@ -69,6 +88,8 @@ def main():
         except Exception as e:
             print(e)
         finally:
+            chatwithuser("Thank you for joining the meeting")
+            page.locator(endcall_xpath).click()
             page.close()        
             browser.close()
 
