@@ -1,0 +1,33 @@
+{
+    "Vinay": {
+      "skills": ["Design posters", "UI design"],
+      "availability": true,
+      "experience": 2
+    },
+    "Ravi": {
+      "skills": ["Poster making", "Graphic design"],
+      "availability": true,
+      "experience": 1
+    },
+    "Manish": {
+      "skills": ["Flyer design", "Marketing materials"],
+      "availability": false,
+      "experience": 3
+    },
+    "Peter": {
+      "skills": ["Backend Design", "Business Logic"],
+      "availability": true,
+      "experience": 4
+    },
+    "Raghu": {
+      "skills": ["Database Engineering", "Data Analysis"],
+      "availability": true,
+      "experience": 3
+    },
+    "Thomas": {
+      "skills": ["Public Speaking", "SEO"],
+      "availability": true,
+      "experience": 2
+    }
+  }
+  

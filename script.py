@@ -1,10 +1,14 @@
 from playwright.sync_api import sync_playwright
 import time
-from RealtimeSTT import AudioToTextRecorder
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
 load_dotenv()
+from taskalloc import find_users_for_tasks
+import json
+import faiss
+import numpy as np
+from sentence_transformers import SentenceTransformer
 
 def main():
     meeting_link = input("Enter meeting link for me to join:")
@@ -28,16 +32,16 @@ def main():
             mic_class = ".Pr6Uwe"
             cam_class = ".utiQxe"
             transcript_xpath = '''//*[@id="yDmH0d"]/c-wiz/div/div/div[36]/div[4]/div/div[3]/div/div[2]/div/div'''
-            endcall_xpath='''//*[@id="yDmH0d"]/c-wiz/div/div/div[36]/div[4]/div[8]/div/div/div[2]/div/div[8]'''
+            endcall_xpath='.VYBDae-Bz112c-RLmnJb'
             chat_xpath='''//*[@id="yDmH0d"]/c-wiz/div/div/div[36]/div[4]/div/div[8]/div/div/div[3]/nav/div[3]/div/div/span/button/div'''
             page.locator(cam_class).click();
             page.locator(mic_class).click();
             time.sleep(2);
             page.locator('.UywwFc-vQzf8d').click(); #clicking the join now button
             page.wait_for_load_state('domcontentloaded')
-            page.click('button:has-text("Got it")')
+            # page.click('button:has-text("Got it")')
             page.locator('.juFBl').click() #turn on captions button
-            page.wait_for_load_state('domcontentloaded')
+            # page.wait_for_load_state('domcontentloaded')
             genai.configure(api_key=os.getenv("GOOGLE_APIKEY"))
             with open('prompt.txt','r') as f:
                     prompts = f.read().split('/')#different prompts are stored as list
@@ -45,7 +49,7 @@ def main():
             time.sleep(5)
             def chatwithuser(text):
                 page.locator(chat_xpath).click()
-                time.sleep(1)
+                time.sleep(2)
                 page.keyboard.type(text)
                 time.sleep(1)
                 page.keyboard.press('Enter')
@@ -75,8 +79,12 @@ def main():
 
 
                     #Plan on how to proceed(Visualizations plan)
+                    #Assigning tasks to users
                     response = model.generate_content(prompts[2]+l[0].lower())
                     output = response.text.replace('#','').replace('*','')
+                    li = find_users_for_tasks(output.split(","))
+                    chatwithuser(str(li))
+                    time.sleep(2)
                     print(output)
                     break
                 else:
