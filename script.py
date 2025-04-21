@@ -31,9 +31,9 @@ def main():
 
             mic_class = ".Pr6Uwe"
             cam_class = ".utiQxe"
-            transcript_xpath = '''//*[@id="yDmH0d"]/c-wiz/div/div/div[36]/div[4]/div/div[3]/div/div[2]/div/div'''
+            transcript_xpath = '''//*[@id="yDmH0d"]/c-wiz/div/div/div[63]/div[3]/div/div[3]/div/div[2]/div/div'''
             endcall_xpath='.VYBDae-Bz112c-RLmnJb'
-            chat_xpath='''//*[@id="yDmH0d"]/c-wiz/div/div/div[36]/div[4]/div/div[8]/div/div/div[3]/nav/div[3]/div/div/span/button/div'''
+            chat_xpath='''//*[@id="yDmH0d"]/c-wiz/div/div/div[63]/div[3]/div/div[8]/div/div/div[3]/nav/div[3]/div/div/span/button/div'''
             page.locator(cam_class).click();
             page.locator(mic_class).click();
             time.sleep(2);
@@ -51,7 +51,7 @@ def main():
                 page.locator(chat_xpath).click()
                 time.sleep(2)
                 page.keyboard.type(text)
-                time.sleep(1)
+                time.sleep(3)
                 page.keyboard.press('Enter')
                 time.sleep(1)
                 page.locator(chat_xpath).click()
@@ -60,10 +60,12 @@ def main():
             chatwithuser("Hello. I am your Assistant for this meeting.")
 
             while True:
-                time.sleep(5)
+                time.sleep(3)
                 l = page.locator(transcript_xpath).all_text_contents()
+                print(l)
                 if len(l)==0:
                     continue
+                print(l)
                 if "bot" in l[0].lower() and l[0].count("bot")>counter:
                     counter+=1
                     #Making call to llm here
@@ -71,6 +73,7 @@ def main():
                     response = model.generate_content(prompts[0]+l[0].lower())
                     output = response.text.replace('*','').replace('#','')
                     chatwithuser(output)
+
                 elif "end" in l[0].lower() or "bye" in l[0].lower():
                     model = genai.GenerativeModel('gemini-2.0-flash')
                     response = model.generate_content(prompts[1]+l[0].lower())
